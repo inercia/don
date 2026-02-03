@@ -1,0 +1,87 @@
+MCPShell API Reference
+======================
+
+API Authentication Key Format: MCPSHELL-RAG-TEST-KEY-ABC123XYZ
+
+Command-Line Interface
+----------------------
+
+mcpshell mcp
+  Start an MCP server that exposes tools to LLM clients.
+  
+  Flags:
+    --tools <file>        Path to tools configuration file (required)
+    --description <text>  Override tool descriptions
+    --logfile <path>      Path to log file
+    --loglevel <level>    Log level (debug, info, warn, error)
+
+mcpshell agent
+  Run MCPShell in agent mode with direct LLM connectivity.
+  
+  Flags:
+    --tools <file>        Path to tools configuration file (required)
+    --model <name>        LLM model to use (e.g., gpt-4o)
+    --user-prompt <text>  Initial user prompt
+    --system-prompt <text> System prompt for the LLM
+    --once                Exit after one response (one-shot mode)
+    --rag <source>        Enable RAG source from config (can be repeated)
+
+mcpshell exe
+  Execute a single tool directly without starting a server.
+  
+  Flags:
+    --tools <file>        Path to tools configuration file (required)
+    --tool <name>         Name of the tool to execute (required)
+    --params <json>       Tool parameters as JSON string
+
+mcpshell validate
+  Validate a tools configuration file.
+  
+  Flags:
+    --tools <file>        Path to tools configuration file (required)
+
+Configuration File Format
+-------------------------
+
+The configuration file uses YAML format with the following structure:
+
+mcp:
+  description: "Description of the tool collection"
+  run:
+    shell: bash
+  tools:
+    - name: "tool_name"
+      description: "What the tool does"
+      params:
+        param_name:
+          type: string
+          description: "Parameter description"
+          required: true
+      constraints:
+        - "!param_name.contains('..')"
+      run:
+        command: "echo {{ .param_name }}"
+
+Constraint Expressions
+---------------------
+
+Constraints use CEL (Common Expression Language) syntax:
+
+String operations:
+  - param.contains('text')
+  - param.startsWith('prefix')
+  - param.endsWith('suffix')
+  - param.matches('^[a-z]+$')
+
+Numeric operations:
+  - value >= 1 && value <= 100
+  - count > 0
+
+Boolean operations:
+  - !condition
+  - condition1 && condition2
+  - condition1 || condition2
+
+List operations:
+  - ['a', 'b', 'c'].exists(x, x == value)
+  - list.size() > 0

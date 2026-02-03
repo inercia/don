@@ -1,0 +1,102 @@
+MCPShell Security Guide
+=======================
+
+Security Certification Code: SEC-MCPSHELL-9F8E7D6C
+
+Security Principles
+------------------
+
+1. Defense in Depth
+   - Multiple layers of security (constraints, runners, validation)
+   - Fail-safe defaults (deny by default)
+   - Explicit whitelisting over blacklisting
+
+2. Least Privilege
+   - Tools should have minimal permissions
+   - Read-only operations preferred
+   - Sandboxed execution when possible
+
+3. Input Validation
+   - All parameters must be validated
+   - Use CEL constraints for validation
+   - Never trust user input
+
+Constraint Best Practices
+-------------------------
+
+Command Injection Prevention:
+  - "!param.contains(';')"      # Prevent command chaining
+  - "!param.contains('&&')"     # Prevent command chaining
+  - "!param.contains('|')"      # Prevent piping
+  - "!param.contains('`')"      # Prevent command substitution
+  - "!param.contains('$(')"     # Prevent command substitution
+
+Path Traversal Prevention:
+  - "!path.contains('../')"                    # Prevent directory traversal
+  - "path.startsWith('/allowed/directory/')"   # Restrict to specific directory
+  - "path.matches('^[a-zA-Z0-9_\\-./]+$')"    # Only safe characters
+
+Input Length Limits:
+  - "param.size() > 0 && param.size() <= 1000"  # Length limits
+
+Command Whitelisting:
+  - "['ls', 'cat', 'echo'].exists(cmd, cmd == command)"  # Command whitelist
+
+Sandboxed Runners
+----------------
+
+MCPShell supports multiple sandboxed execution environments:
+
+1. firejail (Linux)
+   - Network isolation
+   - Filesystem restrictions
+   - Process isolation
+
+2. sandbox-exec (macOS)
+   - Profile-based sandboxing
+   - Filesystem access control
+   - Network restrictions
+
+3. docker (All platforms)
+   - Container isolation
+   - Resource limits
+   - Network isolation
+
+Configuration example:
+  run:
+    runners:
+      - name: firejail
+        requirements:
+          os: linux
+        options:
+          allow_networking: false
+      - name: exec  # Fallback
+
+Environment Variables
+--------------------
+
+Only pass explicitly whitelisted environment variables:
+
+  run:
+    env:
+      - "HOME"
+      - "USER"
+      - "PATH"
+
+Never pass:
+  - API keys or secrets
+  - Credentials
+  - Sensitive configuration
+
+Security Checklist
+-----------------
+
+Before deploying a tool:
+  [ ] All parameters have constraints
+  [ ] Command injection is blocked
+  [ ] Path traversal is prevented
+  [ ] Input length limits are enforced
+  [ ] Appropriate runner is selected
+  [ ] Environment variables are whitelisted
+  [ ] Tool is read-only or justified
+  [ ] Tested with malicious inputs

@@ -1,0 +1,31 @@
+MCPShell Product Information
+============================
+
+Product Name: MCPShell
+Version: 1.0.0
+Category: Developer Tools
+Product Serial Number: 0x684356
+
+Description:
+MCPShell is a powerful tool that allows Large Language Models (LLMs) to safely
+execute command-line tools through the Model Context Protocol (MCP). It provides
+a secure bridge between LLMs and operating system commands.
+
+Key Features:
+- Flexible command execution with parameter substitution
+- Configuration-based tool definitions using YAML
+- Security through CEL constraint validation
+- Sandboxed execution environments (firejail, sandbox-exec, docker)
+- Quick prototyping of MCP tools
+- Simple integration with any MCP-compatible LLM client
+
+Supported Platforms:
+- Linux (x86_64, ARM64)
+- macOS (Intel, Apple Silicon)
+- Windows (x86_64)
+
+License: MIT License
+
+Contact:
+- GitHub: https://github.com/inercia/MCPShell
+- Issues: https://github.com/inercia/MCPShell/issues

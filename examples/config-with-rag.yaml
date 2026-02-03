@@ -1,0 +1,144 @@
+# Example agent configuration with RAG (Retrieval-Augmented Generation) support
+#
+# This configuration demonstrates how to set up RAG sources for your agent.
+# RAG allows the agent to retrieve relevant information from documents to answer questions.
+#
+# RAG is fully integrated with cagent's multi-agent framework. When you enable RAG sources,
+# the agent will automatically create RAG tools that can query your documents.
+# See docs/usage-agent-rag.md for detailed usage guide and docs/arch-rag.md for architecture.
+
+agent:
+  # Model configuration
+  models:
+    - model: "gpt-4o"
+      class: "openai"
+      name: "openai"
+      default: true
+      api-key: "${OPENAI_API_KEY}"
+      api-url: "https://api.openai.com/v1"
+
+  # RAG configuration - define knowledge sources
+  rag:
+    # Example: Documentation RAG source
+    project_docs:
+      description: "Project documentation and guides"
+      
+      # Documents to index (supports URLs and local paths)
+      docs:
+        - "https://example.com/docs/getting-started.md"
+        - "https://example.com/docs/api-reference.md"
+        - "./docs"  # Local directory
+        - "./README.md"  # Local file
+      
+      # Retrieval strategies
+      strategies:
+        - type: "chunked-embeddings"
+          model: "text-embedding-3-small"
+          chunking:
+            size: 1000
+            overlap: 200
+            respect_word_boundaries: true
+          limit: 5
+      
+      # Result configuration
+      results:
+        limit: 10
+        deduplicate: true
+        include_score: true
+        return_full_content: false
+
+    # Example: API documentation RAG source
+    api_docs:
+      description: "API reference documentation"
+      
+      docs:
+        - "https://api.example.com/docs/v1"
+        - "./api-docs"
+      
+      strategies:
+        - type: "chunked-embeddings"
+          model: "text-embedding-3-small"
+          chunking:
+            size: 800
+            overlap: 150
+          limit: 3
+        
+        - type: "bm25"
+          limit: 3
+      
+      # Multi-strategy fusion
+      results:
+        limit: 5
+        fusion:
+          strategy: "rrf"  # Reciprocal Rank Fusion
+          k: 60
+        deduplicate: true
+        include_score: true
+
+    # Example: Code examples RAG source
+    code_examples:
+      description: "Code examples and snippets"
+      
+      docs:
+        - "./examples"
+        - "./tests"
+      
+      strategies:
+        - type: "chunked-embeddings"
+          model: "text-embedding-3-small"
+          chunking:
+            size: 500
+            overlap: 100
+          limit: 5
+      
+      results:
+        limit: 5
+        return_full_content: true  # Return full code files
+
+# Usage:
+#
+# 1. Enable specific RAG sources with --rag flag:
+#    $ don --tools=tools.yaml --rag=project_docs "How do I get started?"
+#
+# 2. Enable multiple RAG sources:
+#    $ don --tools=tools.yaml --rag=project_docs --rag=api_docs "Explain the API"
+#
+# 3. RAG sources are processed at startup:
+#    - URLs are downloaded to cache (~/.cache/mcpshell/rag/ or platform-specific)
+#    - Local files and directories are scanned for text files
+#    - Documents are ready for indexing (when full integration is complete)
+#
+# Configuration Options:
+#
+# RAG Source Fields:
+#   description: Human-readable description of the knowledge source
+#   docs: List of URLs or local paths (files or directories)
+#   strategies: List of retrieval strategies to use
+#   results: Result processing configuration
+#
+# Strategy Types:
+#   - chunked-embeddings: Vector similarity search with embeddings
+#   - bm25: BM25 keyword-based search
+#
+# Chunking Options:
+#   size: Chunk size in characters
+#   overlap: Overlap between chunks in characters
+#   respect_word_boundaries: Don't split words (default: true)
+#
+# Results Options:
+#   limit: Maximum number of results to return
+#   fusion: Multi-strategy result fusion (rrf, weighted, max)
+#   deduplicate: Remove duplicate results
+#   include_score: Include similarity scores
+#   return_full_content: Return full documents instead of chunks
+#
+# Fusion Strategies:
+#   - rrf: Reciprocal Rank Fusion (default)
+#   - weighted: Weighted combination of scores
+#   - max: Maximum score across strategies
+#
+# Cache Management:
+#   - Downloaded documents are cached with ETag/Last-Modified headers
+#   - Cache location: ~/.cache/mcpshell/rag/ (Linux/macOS) or %LOCALAPPDATA%\mcpshell\rag\ (Windows)
+#   - Override with: MCPSHELL_RAG_CACHE_DIR environment variable
+#   - Cache is validated on each run (re-downloads if stale)

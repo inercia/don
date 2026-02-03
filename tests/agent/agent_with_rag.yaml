@@ -1,0 +1,61 @@
+# Test agent configuration file with RAG section
+# This tests loading RAG config from agent.yaml instead of --rag flags
+
+agent:
+  # Model configuration
+  models:
+    - model: "gpt-4o-mini"
+      class: "openai"
+      name: "openai"
+      default: true
+      api-key: "${OPENAI_API_KEY}"
+      api-url: "${OPENAI_API_URL:-https://api.openai.com/v1}"
+
+  # RAG configuration embedded in agent config
+  rag:
+    # Product documentation RAG source
+    product_docs:
+      description: "MCPShell product information and documentation"
+      
+      # Local documents to index
+      docs:
+        - "./tests/agent/rag_docs/product_info.txt"
+        - "./tests/agent/rag_docs/api_reference.txt"
+      
+      # Retrieval strategy
+      strategies:
+        - type: "chunked-embeddings"
+          model: "text-embedding-3-small"
+          chunking:
+            size: 500
+            overlap: 100
+            respect_word_boundaries: true
+          limit: 3
+      
+      # Result configuration
+      results:
+        limit: 5
+        deduplicate: true
+        include_score: false
+        return_full_content: false
+
+    # API documentation RAG source
+    api_docs:
+      description: "MCPShell API reference documentation"
+      
+      docs:
+        - "./tests/agent/rag_docs/api_reference.txt"
+      
+      strategies:
+        - type: "chunked-embeddings"
+          model: "text-embedding-3-small"
+          chunking:
+            size: 400
+            overlap: 80
+          limit: 3
+      
+      results:
+        limit: 3
+        deduplicate: true
+        include_score: false
+
