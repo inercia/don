@@ -1,9 +1,5 @@
 # Don
 
-<p align="center">
-  <img src="docs/logo.png" alt="banner" width="300"/>
-</p>
-
 **Don** is an AI agent that connects Large Language Models (LLMs) directly to
 command-line tools, enabling autonomous task execution without requiring a separate
 MCP client.
